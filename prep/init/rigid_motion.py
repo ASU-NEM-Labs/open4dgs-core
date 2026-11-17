@@ -3,7 +3,7 @@
 Per-pixel temporal matching (RoMa or optical flow) can fail on fast, blurred parts in a
 way that is consistent across views: a track that sticks to the background or stays put
 triangulates cleanly, so multi-view and reprojection gates accept it. Measured on
-xr-lab-02 (fast forearm reaching a stop), ~25% of all-camera flow tracks were wrong like
+example capture (fast forearm reaching a stop), ~25% of all-camera flow tracks were wrong like
 this, while a rigid fit to the limb's points recovered the motion to ~1.3 prep spacings.
 
 This pass works on the assembled keyframe rows. For each keyframe k and each neighbour

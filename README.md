@@ -4,6 +4,37 @@ Open4DGS-Core prepares synchronized multi-camera video, initializes dynamic Gaus
 
 Start with the [two-repository installation guide](SETUP.md). In the development repository, the trainer also lives under `train/trigs/`.
 
+## Release status and support
+
+This is an **initial research release**. Interfaces, defaults, and file formats may
+change as the project develops. The roadmap describes planned work without
+committed delivery dates.
+
+The main Linux setup was exercised on **Ubuntu 24.04, Python 3.11, CUDA 12.8,
+and an NVIDIA RTX 3090**. The trainer setup also documents a reported Windows
+11 / RTX PRO 6000 Blackwell configuration. These are specific tested or reported
+configurations, not a guarantee for every GPU or operating system. **WSL 2 has
+not yet been validated for this release.** See the setup guides for details.
+
+The split repositories have passed local dependency coverage checks and the
+trainer package builds successfully. A fresh end-to-end GPU run using only the
+split repositories has not yet been completed. Reconstruction quality, memory
+requirements, and runtime depend on the capture, masks, calibration, and GPU;
+large scenes may need substantial system RAM and GPU memory.
+
+Please use GitHub issues for reproducible bugs and installation problems. Include
+both repository versions, your environment, the command, and a redacted error
+log. Support is best effort; response times and feature delivery are not
+guaranteed. For suspected security problems, see [SECURITY.md](SECURITY.md).
+
+## Example datasets
+
+Two example datasets are planned for the companion
+[Open4DGS-Datasets repository](https://github.com/ASU-NEM-Labs/open4dgs-datasets).
+Dataset downloads, usage instructions, and dataset-specific licenses will be
+provided there as they become available. The datasets are distributed separately
+from these source repositories.
+
 ## Roadmap
 
 - [x] Initial Code Release
@@ -165,6 +196,84 @@ python "$REPO/deliver/make-trigs-timeline.py" from-checkpoint \
 ```
 
 Use the actual frame rate and frame count for the capture. Some final COLMAP checkpoints do not contain the training configuration; when the run changes deformation settings, use a snapshot saved with `--config.checkpoint-dir` to preserve those settings for PLY export. See each command's `--help` for export options.
+
+## Inspecting preparation and training
+
+Two viewers cover different stages of the pipeline:
+
+| Viewer | Repository | Input | Rendering |
+| --- | --- | --- | --- |
+| [NPZ initialization viewer](#npz-initialization-viewer) | Open4DGS-Core | Prepared `keyframes.npz` | Point cloud in the browser; no CUDA required |
+| [Interactive trainer viewer](https://github.com/ASU-NEM-Labs/open4dgs-trigs#interactive-trainer-viewer) | Open4DGS-Trigs | Trained `.pt` checkpoints or live training snapshots | Gaussian rendering on an NVIDIA CUDA GPU |
+
+### NPZ initialization viewer
+
+Use [prep/init/npz-viewer.py](prep/init/npz-viewer.py) to inspect the output of
+`prep-roma-trigs-memory.py` before training. From the `open4dgs-core` checkout
+root, with the preparation environment active:
+
+```bash
+python prep/init/npz-viewer.py \
+  --npz /path/to/capture/keyframes.npz \
+  --port 8765 --max-points 100000
+```
+
+Open **http://localhost:8765**. The script also attempts to open your browser
+automatically; add `--no-browser` when running remotely. Keep the terminal open
+and press `Ctrl+C` to stop the server.
+
+The Python server needs **NumPy**, and the browser needs **WebGL**. CUDA,
+PyTorch, and the trainer package are not required for this viewer. Its page loads
+Three.js and fonts from external CDNs, so the browser needs internet access for
+those assets. The input must contain `positions` and `times`; the preparation
+output also supplies colors, motion, source frames, and other useful metadata.
+
+- **Navigate:** left-drag to orbit, right- or middle-drag to pan, and scroll to
+  zoom. Camera presets, scene rotation, and **Reset Up** help orient the scene.
+- **Inspect time:** use the frame slider or left/right arrow keys. Press Space
+  to play/pause; adjust playback FPS in the sidebar. Frames represent the
+  available initialization source-frame groups, not rendered trained motion.
+- **Inspect motion and classification:** switch between RGB, time and velocity
+  heatmaps, static/dynamic and saved-mask views. Toggle velocity vectors and
+  inspect per-frame statistics.
+- **Plan preparation regions:** adjust the stage-capsule and detail-sphere
+  previews, then use **Copy ROMA args** to copy their settings into a preparation
+  command. Previewing regions does not edit the input NPZ.
+
+`--max-points` caps the points displayed per source-frame group; lower it if the
+browser becomes slow. The current CLI default is 1,400,000, so the example uses
+an explicit smaller limit. This subsamples the display, not the saved NPZ. The
+server still loads the full NPZ into RAM, and the browser prefetches frames, so
+large captures can need substantial memory even with a lower point limit.
+
+For a remote host, run the server there with `--no-browser`, then forward the
+port from your local computer:
+
+```bash
+ssh -N -L 8765:localhost:8765 user@remote-host
+```
+
+Open **http://localhost:8765** locally. Use trusted machines and protect the
+server ports from public access; see [SECURITY.md](SECURITY.md). Run
+`python prep/init/npz-viewer.py --help` for the complete CLI options.
+
+### Interactive trainer viewer
+
+The trainer's browser viewer supports playback, visibility and motion diagnostics,
+and following a running training job through periodically saved snapshots. With
+the trainer environment installed and active:
+
+```bash
+python -m trigs.core.viewer --ckpt /path/to/run/trigs_ckpt.pt --port 8080
+
+# Alternatively, follow training snapshots:
+python -m trigs.core.viewer --watch /path/to/run/viewer_snapshots --port 8080
+```
+
+Open **http://localhost:8080**. This viewer needs CUDA on the machine running
+Python. See the [trainer viewer guide](https://github.com/ASU-NEM-Labs/open4dgs-trigs#interactive-trainer-viewer)
+for controls, snapshot settings, memory considerations, and matching the viewer's
+visibility threshold to the training configuration.
 
 ## The `.trigsbin` intermediate format
 

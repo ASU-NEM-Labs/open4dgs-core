@@ -1933,7 +1933,7 @@ def main():
     )
     parser.add_argument(
         "--max-points", type=int, default=1400000,
-        help="Max points per frame to send to browser (default: 80000)"
+        help="Max points per frame to send to browser (default: %(default)s)"
     )
     parser.add_argument(
         "--no-browser", action="store_true",

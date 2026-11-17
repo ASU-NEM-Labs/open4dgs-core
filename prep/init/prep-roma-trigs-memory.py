@@ -2216,7 +2216,7 @@ def load_rs_signs_for_cameras(
     Cameras record landscape; extraction rotates ±90°, so the sensor readout
     lines become portrait image COLUMNS and the readout time axis runs
     horizontally with a per-camera sign. Convention (empirically calibrated on
-    arvin-karate-4d by regressing trained camera-time offsets against
+    example capture by regressing trained camera-time offsets against
     rotation-signed subject column): rotation 'l' -> capture time increases
     with +u (sign +1), rotation 'r' -> decreases (sign -1). Use
     ``flip_sign`` if a capture rig inverts this mapping.
@@ -4775,7 +4775,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument('--rs-readout-ms', type=float, default=0.0,
                    help='Rolling-shutter readout duration in ms across the full column '
                         'span of the delivered images (Sony RX0 II @1080p60 measured '
-                        '~7 ms on arvin-karate-4d). Adds a per-pixel capture-time term '
+                        '~7 ms on example capture). Adds a per-pixel capture-time term '
                         's_c*readout*(u-u_ref)/W to the sync motion compensation, '
                         'referenced to the flow-weighted mean column so it composes '
                         'with sync.json offsets. 0 disables.')
