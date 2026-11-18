@@ -2,6 +2,8 @@
 
 Open4DGS-Core prepares synchronized multi-camera video, initializes dynamic Gaussian scenes, and exports TRiGS reconstructions. Training is provided by [Open4DGS-Trigs](https://github.com/ASU-NEM-Labs/open4dgs-trigs), the companion AGPL-3.0 repository.
 
+The trainer can also **learn per-camera timing offsets during reconstruction**, refining residual sub-frame synchronization errors alongside scene motion. See [learned camera timing offsets](https://github.com/ASU-NEM-Labs/open4dgs-trigs#learn-camera-timing-offsets) for this opt-in feature and its settings.
+
 Start with the [two-repository installation guide](SETUP.md). In the development repository, the trainer also lives under `train/trigs/`.
 
 ## Release status and support
@@ -29,11 +31,22 @@ guaranteed. For suspected security problems, see [SECURITY.md](SECURITY.md).
 
 ## Example datasets
 
-Two example datasets are planned for the companion
-[Open4DGS-Datasets repository](https://github.com/ASU-NEM-Labs/open4dgs-datasets).
-Dataset downloads, usage instructions, and dataset-specific licenses will be
-provided there as they become available. The datasets are distributed separately
-from these source repositories.
+Example captures are hosted in
+[Open4DGS-Datasets on Hugging Face](https://huggingface.co/datasets/asu-nem-labs/open4dgs-datasets):
+
+- **example capture:** a dance capture recorded with 27 cameras.
+- **spidermen-01:** two performers in Spider-Man costumes, recorded with 45 cameras.
+
+Both include original camera videos with embedded timecode and separate
+alignment footage. The dataset README provides download and extraction
+instructions; downloads preserve the camera folder structure.
+
+The datasets use a separate license permitting **private, noncommercial
+evaluation and testing only**; this repository's MIT license does not apply
+to them. Sign in to Hugging Face and
+accept the dataset terms to obtain access. Sharing footage, renders, or
+reconstructed models requires prior written permission. See the dataset
+license for the full terms.
 
 ## Roadmap
 
@@ -179,6 +192,14 @@ trigs-eval-colmap --data-dir . --runs runs/example --step -1 \
 ```
 
 Omit `--timing-json` when no timing file is needed. The trainer takes the frame range, stride, fps, and target population from the NPZ. See the [trainer guide](https://github.com/ASU-NEM-Labs/open4dgs-trigs/blob/main/README.md) and [pipeline guide](docs/run-pipeline.md#3-training) for run behavior and options.
+
+To refine residual camera timing errors during training, add
+`--config.learn-camera-time-offsets` to the training command. Offset learning
+is disabled by default and starts after an 8,000-step warmup when enabled.
+Use the preparation-stage synchronization as the starting point; this learns
+one constant temporal correction per camera and does not replace initial
+synchronization or rolling-shutter correction. See the
+[offset-learning guide](https://github.com/ASU-NEM-Labs/open4dgs-trigs#learn-camera-timing-offsets).
 
 ### 7. Export
 
